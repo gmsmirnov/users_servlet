@@ -268,7 +268,8 @@ public class User {
                     && Objects.equals(this.email, user.email)
                     && Objects.equals(this.password, user.password)
                     && Objects.equals(this.country, user.country)
-                    && Objects.equals(this.city, user.city);
+                    && Objects.equals(this.city, user.city)
+                    && Objects.equals(this.role, user.role);
         }
         return result;
     }
@@ -280,7 +281,7 @@ public class User {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(this.login, this.email, this.password, this.country, this.city);
+        return Objects.hash(this.login, this.email, this.password, this.country, this.city, this.role);
     }
 
     /**
@@ -290,7 +291,7 @@ public class User {
      */
     @Override
     public String toString() {
-        return String.format("User {id=%d, login='%s', email='%s', country='%s', city='%s', role='%s'",
+        return String.format("User {id='%d', login='%s', email='%s', country='%s', city='%s', role='%s'",
                 this.id, this.login, this.email, this.country, this.city, this.role);
     }
 }
