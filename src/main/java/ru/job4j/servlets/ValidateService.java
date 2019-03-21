@@ -1,5 +1,7 @@
 package ru.job4j.servlets;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import ru.job4j.servlets.dao.UserDao;
 import ru.job4j.servlets.dao.exception.*;
 import ru.job4j.servlets.dao.impl.UserDaoDb;
@@ -11,10 +13,15 @@ import java.util.Collection;
  * Validate service for user servlet.
  *
  * @author Gregory Smirnov (artress@ngs.ru)
- * @version 1.2
+ * @version 1.3
  * @since 13/02/2019
  */
 public class ValidateService {
+    /**
+     * The logger.
+     */
+    private final static Logger LOG = LogManager.getLogger(ValidateService.class.getName());
+
     /**
      * The singleton instance of a validate service.
      */
@@ -148,6 +155,7 @@ public class ValidateService {
         for (User user : this.userDao.findAll()) {
             if (login.equals(user.getLogin()) && password.equals(user.getPassword())) {
                 result = true;
+                ValidateService.LOG.info("User is valid.");
                 break;
             }
         }

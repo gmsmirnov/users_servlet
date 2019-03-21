@@ -1,5 +1,7 @@
 package ru.job4j.servlets.controller;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import ru.job4j.servlets.Constants;
 
 import javax.servlet.ServletException;
@@ -18,6 +20,11 @@ import java.io.IOException;
  */
 public class SignoutController extends HttpServlet {
     /**
+     * The logger.
+     */
+    private static final Logger LOG = LogManager.getLogger(SignoutController.class.getName());
+
+    /**
      * Closes current session and forward to login-page.
      *
      * @param req - HTTP request.
@@ -28,6 +35,7 @@ public class SignoutController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         HttpSession session = req.getSession();
+        SignoutController.LOG.info(String.format("User: '%s' leaved the system.", session.getAttribute(Constants.ATTR_LOGIN)));
         session.invalidate();
         req.getRequestDispatcher(Constants.PAGE_JSP_LOGIN).forward(req, resp);
     }

@@ -1,5 +1,7 @@
 package ru.job4j.servlets.controller;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import ru.job4j.servlets.Constants;
 import ru.job4j.servlets.Dispatcher;
 import ru.job4j.servlets.model.User;
@@ -14,10 +16,15 @@ import java.io.IOException;
  * Servlet for creating a new user.
  *
  * @author Gregory Smirnov (artress@ngs.ru)
- * @version 1.2
+ * @version 1.3
  * @since 16/02/2019
  */
 public class UserCreateController extends HttpServlet {
+    /**
+     * The logger.
+     */
+    private static final Logger LOG = LogManager.getLogger(UserCreateController.class.getName());
+
     /**
      * Shows empty form to create a new user. The GET request.
      *
@@ -51,6 +58,8 @@ public class UserCreateController extends HttpServlet {
                 req.getParameter(User.PARAM_ROLE)
         ));
         dispatcher.sent(Constants.ACTION_CREATE);
+        UserCreateController.LOG.info(String.format("Current user: '%s' created a new user '%s'",
+                req.getSession().getAttribute(Constants.ATTR_LOGIN), req.getParameter(User.PARAM_LOGIN)));
         this.doGet(req, resp);
     }
 }

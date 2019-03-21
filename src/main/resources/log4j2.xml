@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Configuration status="info">
+
+    <Properties>
+        <Property name="log_dir">D:\Work\Java\projects\users_servlet\</Property>
+        <Property name="layout">%d [%t] %-5p %c - %m%n</Property>
+    </Properties>
+
+    <Appenders>
+        <RollingFile name="USERS_SERVLET"
+                     fileName="${log_dir}\users_servlet.log"
+                     filePattern="${log_dir}\users_servlet.%d{yyyy-MM-dd}-%i.log">
+            <PatternLayout pattern="${layout}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy />
+                <SizeBasedTriggeringPolicy size="1 MB" />
+            </Policies>
+            <DefaultRolloverStrategy max="10" />
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <Logger name="ru.job4j.servlets"
+                level="info" additivity="false">
+            <AppenderRef ref="USERS_SERVLET"/>
+        </Logger>
+        <Root level="error"/>
+    </Loggers>
+</Configuration>

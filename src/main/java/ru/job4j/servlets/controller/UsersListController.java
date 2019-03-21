@@ -1,5 +1,7 @@
 package ru.job4j.servlets.controller;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import ru.job4j.servlets.Constants;
 import ru.job4j.servlets.Dispatcher;
 import ru.job4j.servlets.ValidateService;
@@ -22,6 +24,11 @@ import java.io.IOException;
  */
 public class UsersListController extends HttpServlet {
     /**
+     * The logger.
+     */
+    private static final Logger LOG = LogManager.getLogger(UsersListController.class.getName());
+
+    /**
      * The logic singleton instance.
      */
     private final ValidateService logic = ValidateService.getSingletonValidateServiceInstance();
@@ -39,8 +46,10 @@ public class UsersListController extends HttpServlet {
         try {
             req.setAttribute(Constants.ATTR_USERS_LIST, this.logic.findAll());
         } catch (DaoSystemException e) {
-            /*NOP*/
+            UsersListController.LOG.error(e.getMessage(), e);
         }
+        UsersListController.LOG.info(String.format("Current user: '%s' requested for the list of all users.",
+                req.getSession().getAttribute(Constants.ATTR_LOGIN)));
         req.getRequestDispatcher(Constants.PAGE_JSP_LIST).forward(req, resp);
     }
 
@@ -60,13 +69,15 @@ public class UsersListController extends HttpServlet {
             User currentUser = (User) req.getSession().getAttribute(Constants.ATTR_CURRENT_USER);
             Dispatcher dispatcher = new Dispatcher(user);
             dispatcher.sent(Constants.ACTION_DELETE);
+            UsersListController.LOG.info(String.format("Current user: '%s' asked for delete user '%s'",
+                    currentUser.getLogin(), user.getLogin()));
             if (user.equals(currentUser)) {
                 resp.sendRedirect(String.format("%s%s", req.getContextPath(), Constants.PAGE_LOGOUT));
             } else {
                 this.doGet(req, resp);
             }
         } catch (DaoSystemException | NoSuchModelException e) {
-            /*NOP*/
+            UsersListController.LOG.error(e.getMessage(), e);
         }
     }
 }

@@ -1,5 +1,7 @@
 package ru.job4j.servlets.controller;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import ru.job4j.servlets.Constants;
 import ru.job4j.servlets.Dispatcher;
 import ru.job4j.servlets.ValidateService;
@@ -21,6 +23,11 @@ import java.io.IOException;
  * @since 16/02/2019
  */
 public class UserUpdateController extends HttpServlet {
+    /**
+     * The logger.
+     */
+    private static final Logger LOG = LogManager.getLogger(UserUpdateController.class.getName());
+
     /**
      * The logic singleton instance.
      */
@@ -67,6 +74,8 @@ public class UserUpdateController extends HttpServlet {
                 req.getParameter(User.PARAM_ROLE)
         ));
         dispatcher.sent(Constants.ACTION_UPDATE);
+        UserUpdateController.LOG.info(String.format("Current user: '%s' update user '%s'",
+                req.getSession().getAttribute(Constants.ATTR_LOGIN), req.getParameter(User.PARAM_LOGIN)));
         this.doGet(req, resp);
     }
 }
