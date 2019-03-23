@@ -53,15 +53,15 @@ public class ValidateService {
      * @param user - the specified user.
      * @throws DaoSystemException - generates from SQLException.
      * @throws NullArgumentException if the specified user is null.
-     * @throws AlreadyExistsModelWithSuchIdException if there already is another user with such id in database.
+     * @throws AlreadyExistsModelWithSuchLoginException if there already is another user with such login in database.
      * @throws NoSuchIdException if there is no role with such id in database.
      */
-    public void add(User user) throws DaoSystemException, NullArgumentException, AlreadyExistsModelWithSuchIdException, NoSuchIdException {
+    public void add(User user) throws DaoSystemException, NullArgumentException, AlreadyExistsModelWithSuchLoginException, NoSuchIdException {
         this.checkUser(user);
-        if (!this.userDao.containsKey(user)) {
+        if (!this.userDao.containsLogin(user)) {
             this.userDao.add(user);
         } else {
-            throw new AlreadyExistsModelWithSuchIdException(String.format("User with such id already exists in database: %d.", user.getId()));
+            throw new AlreadyExistsModelWithSuchLoginException(String.format("User with such login already exists in database: %s.", user.getLogin()));
         }
     }
 

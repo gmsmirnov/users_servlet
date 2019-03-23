@@ -1,12 +1,17 @@
 package ru.job4j.servlets.dao.impl;
 
+import com.ibatis.common.jdbc.ScriptRunner;
 import org.apache.commons.dbcp2.BasicDataSource;
 import ru.job4j.servlets.dao.UserDao;
 import ru.job4j.servlets.dao.exception.DaoSystemException;
 import ru.job4j.servlets.dao.exception.NoSuchIdException;
 import ru.job4j.servlets.model.User;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.Reader;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -15,7 +20,7 @@ import java.util.List;
  * Implementation of a Postrgres database storage.
  *
  * @author Gregory Smirnov (artress@ngs.ru)
- * @version 1.2
+ * @version 1.3
  * @since 21/02/2019
  */
 public class UserDaoDb implements UserDao {
@@ -29,7 +34,15 @@ public class UserDaoDb implements UserDao {
      */
     private static final UserDaoDb INSTANCE = new UserDaoDb();
 
+    /**
+     * The constant for result table column, named 'role'.
+     */
     public static final String COLUMN_LABEL_ROLE = "role";
+
+    /**
+     * The constant for result table column, named 'id'.
+     */
+    public static final String COLUMN_LABEL_ID = "id";
 
     /**
      * Default constructor.
@@ -42,6 +55,9 @@ public class UserDaoDb implements UserDao {
         UserDaoDb.SOURCE.setMinIdle(5);
         UserDaoDb.SOURCE.setMaxIdle(10);
         UserDaoDb.SOURCE.setMaxOpenPreparedStatements(100);
+        if (!this.isStructure()) {
+            this.createStructure();
+        }
     }
 
     /**
@@ -54,10 +70,52 @@ public class UserDaoDb implements UserDao {
     }
 
     /**
-     * Puts the specified value into the storage.
+     * Checks database structure.
+     *
+     * @return true if the structure exists.
+     */
+    public boolean isStructure() {
+        boolean result = false;
+        ArrayList<String> tables = new ArrayList<String>();
+        try (Connection connection = UserDaoDb.SOURCE.getConnection();
+             PreparedStatement statement = connection.prepareStatement(
+                "select table_name from information_schema.tables "
+                        + "where table_schema='public' order by table_name;")) {
+            try (ResultSet rslSet = statement.executeQuery()) {
+                while (rslSet.next()) {
+                    tables.add(rslSet.getString("table_name"));
+                }
+            }
+            if (tables.contains("roles") && tables.contains("users") && tables.contains("users_roles")) {
+                result = true;
+            }
+        } catch (SQLException e) {
+            /*NOP*/
+        }
+        return result;
+    }
+
+    /**
+     * Creates tables structure if it not exists.
+     */
+    private void createStructure() {
+//        String aSQLScriptFilePath = ".\\src\\main\\resources\\createTables.sql";
+        String aSQLScriptFilePath = "createTables.sql";
+        try (Connection connection = UserDaoDb.SOURCE.getConnection()) {
+            ScriptRunner scriptRunner = new ScriptRunner(connection, false, false);
+            Reader reader = new BufferedReader(new FileReader(aSQLScriptFilePath));
+            scriptRunner.runScript(reader);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Puts the specified user into the storage.
      *
      * @param user - the specified value.
      * @throws DaoSystemException if SQLException occurs.
+     * @throws NoSuchIdException if there is no role with such id in database.
      */
     @Override
     public void add(User user) throws DaoSystemException, NoSuchIdException {
@@ -68,11 +126,19 @@ public class UserDaoDb implements UserDao {
         }
     }
 
+    /**
+     * Called from 'add'-method. Inserts values into user table and into help-table ('users_roles').
+     *
+     * @param connection - the specified connection, to rollback the transaction if an error occurs.
+     * @param user - the specified user.
+     * @throws DaoSystemException if SQLException occurs.
+     * @throws NoSuchIdException if there is no role with such id in database.
+     */
     private void insertIntoTables(Connection connection, User user) throws DaoSystemException, NoSuchIdException {
         try {
             connection.setAutoCommit(false);
-            this.insertToUsersTable(connection, user);
-            this.insertToUsersRolesTable(connection, user.getId(), this.findRoleId(user.getRole()));
+            int id = this.insertToUsersTable(connection, user);
+            this.insertToUsersRolesTable(connection, id, this.findRoleId(user.getRole()));
             connection.commit();
             connection.setAutoCommit(true);
         } catch (SQLException e) {
@@ -85,22 +151,48 @@ public class UserDaoDb implements UserDao {
         }
     }
 
-    private void insertToUsersTable(Connection connection, User user) throws DaoSystemException {
+    /**
+     * Called from 'insertIntoTables'-method. Inserts value into 'users' table.
+     *
+     * @param connection - the specified connection, to rollback the transaction if an error occurs.
+     * @param user - the specified user.
+     * @return new user's id.
+     * @throws DaoSystemException if SQLException occurs.
+     */
+    private int insertToUsersTable(Connection connection, User user) throws DaoSystemException {
+        int result = -1;
         try (PreparedStatement statement = connection.prepareStatement(
-                     "insert into users(id, login, email, password, country, city)"
-                             + " values(?, ?, ?, ?, ?, ?);")) {
-            statement.setInt(1, user.getId());
-            statement.setString(2, user.getLogin());
-            statement.setString(3, user.getEmail());
-            statement.setString(4, user.getPassword());
-            statement.setString(5, user.getCountry());
-            statement.setString(6, user.getCity());
+                     "insert into users(login, email, password, country, city)"
+                             + " values(?, ?, ?, ?, ?);", Statement.RETURN_GENERATED_KEYS)) {
+            statement.setString(1, user.getLogin());
+            statement.setString(2, user.getEmail());
+            statement.setString(3, user.getPassword());
+            statement.setString(4, user.getCountry());
+            statement.setString(5, user.getCity());
             statement.executeUpdate();
+            try (ResultSet rslSet = statement.getGeneratedKeys()) {
+                if (rslSet.next()) {
+                    result = rslSet.getInt(UserDaoDb.COLUMN_LABEL_ID);
+                }
+            }
         } catch (SQLException e) {
             throw new DaoSystemException(e.getMessage(), e);
         }
+        if (result == -1) {
+            throw new DaoSystemException("Users id id '-1'.");
+        }
+        return result;
     }
 
+    /**
+     * Called from 'insertIntoTables'-method. Inserts value to help-table ('users_roles' table). The relation
+     * between users and roles.
+     *
+     * @param connection - the specified connection, to rollback the transaction if an error occurs.
+     * @param userId - the specified user's id.
+     * @param roleId - the specified role's id.
+     * @throws DaoSystemException if SQLException occurs.
+     */
     private void insertToUsersRolesTable(Connection connection, int userId, int roleId) throws DaoSystemException {
         try (PreparedStatement statement = connection.prepareStatement(
                      "insert into users_roles(user_id, role_id) values(?, ?)")) {
@@ -112,6 +204,14 @@ public class UserDaoDb implements UserDao {
         }
     }
 
+    /**
+     * Help method which finds the specified role's id in the 'roles' table. Never returns '0' or other wrong id.
+     *
+     * @param role - the specified role.
+     * @return the specified role's id.
+     * @throws DaoSystemException if SQLException occurs.
+     * @throws NoSuchIdException if there is no role with such id in the 'roles'-table.
+     */
     private int findRoleId(String role) throws DaoSystemException, NoSuchIdException {
         int id;
         try (Connection connection = UserDaoDb.SOURCE.getConnection();
@@ -121,7 +221,7 @@ public class UserDaoDb implements UserDao {
             statement.setString(1, role);
             try (ResultSet rslSet = statement.executeQuery()) {
                 if (rslSet.next()) {
-                    id = rslSet.getInt("id");
+                    id = rslSet.getInt(UserDaoDb.COLUMN_LABEL_ID);
                 } else {
                     throw new NoSuchIdException("No role with such id");
                 }
@@ -135,8 +235,9 @@ public class UserDaoDb implements UserDao {
     /**
      * Replaces the specified value in the storage.
      *
-     * @param user - the specified value.
+     * @param user - the specified updated user.
      * @throws DaoSystemException if SQLException occurs.
+     * @throws NoSuchIdException if there is no role with such id in database.
      */
     @Override
     public void update(User user) throws DaoSystemException, NoSuchIdException {
@@ -147,6 +248,14 @@ public class UserDaoDb implements UserDao {
         }
     }
 
+    /**
+     * Called from 'update'-method. Updates values in the users table and in the help-table ('users_roles').
+     *
+     * @param connection - the specified connection, to rollback the transaction if an error occurs.
+     * @param user - the specified, updated user.
+     * @throws DaoSystemException if SQLException occurs.
+     * @throws NoSuchIdException if there is no role with such id in database.
+     */
     private void updateTables(Connection connection, User user) throws DaoSystemException, NoSuchIdException {
         try {
             connection.setAutoCommit(false);
@@ -164,6 +273,13 @@ public class UserDaoDb implements UserDao {
         }
     }
 
+    /**
+     * Called from 'updateTables'-method. Updates value in the 'users' table.
+     *
+     * @param connection - the specified connection, to rollback the transaction if an error occurs.
+     * @param user - the specified user.
+     * @throws DaoSystemException if SQLException occurs.
+     */
     private void updateUsersTable(Connection connection, User user) throws DaoSystemException {
         try (PreparedStatement statement = connection.prepareStatement(
                 "update users set login = ?, email = ?, password = ?, country = ?, city = ? where id = ?;")) {
@@ -179,6 +295,15 @@ public class UserDaoDb implements UserDao {
         }
     }
 
+    /**
+     * Called from 'updateTables'-method. Updates value of help-table ('users_roles' table). The relation
+     * between users and roles.
+     *
+     * @param connection - the specified connection, to rollback the transaction if an error occurs.
+     * @param userId - the specified user's id.
+     * @param roleId - the specified role's id.
+     * @throws DaoSystemException if SQLException occurs.
+     */
     private void updateUsersRolesTable(Connection connection, int userId, int roleId) throws DaoSystemException {
         try (PreparedStatement statement = connection.prepareStatement(
                 "update users_roles set role_id = ? where user_id = ?")) {
@@ -205,6 +330,13 @@ public class UserDaoDb implements UserDao {
         }
     }
 
+    /**
+     * Called from 'delete'-method. Deletes value from user table and from help-table ('users_roles').
+     *
+     * @param connection - the specified connection, to rollback the transaction if an error occurs.
+     * @param user - the specified user to delete.
+     * @throws DaoSystemException if SQLException occurs.
+     */
     private void deleteFromTables(Connection connection, User user) throws DaoSystemException {
         try {
             connection.setAutoCommit(false);
@@ -222,6 +354,14 @@ public class UserDaoDb implements UserDao {
         }
     }
 
+    /**
+     * Called from 'deleteFromTables'-method. Deletes value of help-table ('users_roles' table). The relation
+     * between users and roles.
+     *
+     * @param connection - the specified connection, to rollback the transaction if an error occurs.
+     * @param id - the specified user's id.
+     * @throws DaoSystemException if SQLException occurs.
+     */
     private void deleteFromUsersRolesTable(Connection connection, int id) throws DaoSystemException {
         try (PreparedStatement statement = connection.prepareStatement(
                     "delete from users_roles where user_id = ?;"
@@ -233,6 +373,13 @@ public class UserDaoDb implements UserDao {
         }
     }
 
+    /**
+     * Called from 'deleteFromTables'-method. Deletes value in the 'users' table.
+     *
+     * @param connection - the specified connection, to rollback the transaction if an error occurs.
+     * @param user - the specified user.
+     * @throws DaoSystemException if SQLException occurs.
+     */
     private void deleteFromUsersTable(Connection connection, User user) throws DaoSystemException {
         try (PreparedStatement statement = connection.prepareStatement(
                     "delete from users where id = ?;"
@@ -259,7 +406,7 @@ public class UserDaoDb implements UserDao {
             try (ResultSet rslSet = statement.getResultSet()) {
                 while (rslSet.next()) {
                     result.add(new User(
-                            String.format("%d", rslSet.getInt(User.PARAM_ID)),
+                            rslSet.getInt(User.PARAM_ID),
                             rslSet.getString(User.PARAM_LOGIN),
                             rslSet.getString(User.PARAM_EMAIL),
                             rslSet.getString(User.PARAM_PASSWORD),
@@ -340,6 +487,18 @@ public class UserDaoDb implements UserDao {
     }
 
     /**
+     * Checks if the user's login is used in the storage.
+     *
+     * @param user - the specified user.
+     * @return true if the login is already used.
+     * @throws DaoSystemException if SQLException occurs.
+     */
+    @Override
+    public boolean containsLogin(User user) throws DaoSystemException {
+        return this.tryGetUserFromDb(user.getLogin()) != null;
+    }
+
+    /**
      * Tries to get the user with the specified id from database.
      *
      * @param id - the specified user's id.
@@ -354,7 +513,7 @@ public class UserDaoDb implements UserDao {
             try (ResultSet rslSet = statement.executeQuery()) {
                 if (rslSet.next()) {
                     result = new User(
-                            String.format("%d", id),
+                            id,
                             rslSet.getString(User.PARAM_LOGIN),
                             rslSet.getString(User.PARAM_EMAIL),
                             rslSet.getString(User.PARAM_PASSWORD),
@@ -385,7 +544,7 @@ public class UserDaoDb implements UserDao {
             try (ResultSet rslSet = statement.executeQuery()) {
                 if (rslSet.next()) {
                     result = new User(
-                            String.format("%d", rslSet.getInt(User.PARAM_ID)),
+                            rslSet.getInt(User.PARAM_ID),
                             rslSet.getString(User.PARAM_LOGIN),
                             rslSet.getString(User.PARAM_EMAIL),
                             rslSet.getString(User.PARAM_PASSWORD),

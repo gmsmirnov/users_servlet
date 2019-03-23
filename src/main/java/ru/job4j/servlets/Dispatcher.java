@@ -42,7 +42,7 @@ public class Dispatcher {
         return action -> {
             try {
                 this.logic.add(user);
-            } catch (DaoSystemException | AlreadyExistsModelWithSuchIdException | NullArgumentException | NoSuchIdException e) {
+            } catch (DaoSystemException | AlreadyExistsModelWithSuchLoginException | NullArgumentException | NoSuchIdException e) {
                 Dispatcher.LOG.error(e.getMessage(), e);
             }
             return true;

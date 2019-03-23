@@ -1,7 +1,6 @@
 package ru.job4j.servlets.dao.impl;
 
 import ru.job4j.servlets.dao.UserDao;
-import ru.job4j.servlets.dao.exception.DaoSystemException;
 import ru.job4j.servlets.model.User;
 
 import java.util.Collection;
@@ -12,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Implementation of a memory storage. The memory storage is a hash-map.
  *
  * @author Gregory Smirnov (artress@ngs.ru)
- * @version 1.2
+ * @version 1.3
  * @since 07/02/2019
  */
 public class UserDaoMemory implements UserDao {
@@ -126,14 +125,24 @@ public class UserDaoMemory implements UserDao {
     }
 
     /**
+     * Checks if the user's login is already used.
      *
-     *
-     * @param login - the specified login.
-     * @return
-     * @throws DaoSystemException
+     * @param user - the specified user which login checks.
+     * @return true if the user's login is used.
      */
     @Override
-    public User findByLogin(String login) throws DaoSystemException {
+    public boolean containsLogin(User user) {
+        return false;
+    }
+
+    /**
+     * Finds user by login.
+     *
+     * @param login - the specified login.
+     * @return the user with the specified login.
+     */
+    @Override
+    public User findByLogin(String login) {
         return null;
     }
 }

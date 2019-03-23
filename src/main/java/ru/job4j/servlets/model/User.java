@@ -8,7 +8,7 @@ import java.util.Objects;
  * User model description.
  *
  * @author Gregory Smirnov (artress@ngs.ru)
- * @version 1.2
+ * @version 1.3
  * @since 07/02/2019
  */
 public class User {
@@ -92,8 +92,26 @@ public class User {
      * @param country - the specified user's country.
      * @param city - the specified user's city.
      */
-    public User(String id, String login, String email, String password, String country, String city) {
-        this.id = Integer.parseInt(id);
+    public User(int id, String login, String email, String password, String country, String city) {
+        this.id = id;
+        this.login = login;
+        this.email = email;
+        this.password = password;
+        this.country = country;
+        this.city = city;
+        this.role = Constants.ROLE_USER;
+    }
+
+    /**
+     * Creates a new user with the specified params.
+     *
+     * @param login - the specified user's login.
+     * @param email - the specified user's email.
+     * @param password - the specified user's password.
+     * @param country - the specified user's country.
+     * @param city - the specified user's city.
+     */
+    public User(String login, String email, String password, String country, String city) {
         this.login = login;
         this.email = email;
         this.password = password;
@@ -113,8 +131,27 @@ public class User {
      * @param city - the specified user's city.
      * @param role - the specified role.
      */
-    public User(String id, String login, String email, String password, String country, String city, String role) {
-        this.id = Integer.parseInt(id);
+    public User(int id, String login, String email, String password, String country, String city, String role) {
+        this.id = id;
+        this.login = login;
+        this.email = email;
+        this.password = password;
+        this.country = country;
+        this.city = city;
+        this.role = role;
+    }
+
+    /**
+     * Creates a new user with the specified params, including role, without id.
+     *
+     * @param login - the specified user's login.
+     * @param email - the specified user's email.
+     * @param password - the specified user's password.
+     * @param country - the specified user's country.
+     * @param city - the specified user's city.
+     * @param role - the specified role.
+     */
+    public User(String login, String email, String password, String country, String city, String role) {
         this.login = login;
         this.email = email;
         this.password = password;
@@ -291,7 +328,7 @@ public class User {
      */
     @Override
     public String toString() {
-        return String.format("User {id='%d', login='%s', email='%s', country='%s', city='%s', role='%s'",
+        return String.format("User {id=%d, login='%s', email='%s', country='%s', city='%s', role='%s'}",
                 this.id, this.login, this.email, this.country, this.city, this.role);
     }
 }

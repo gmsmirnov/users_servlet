@@ -104,6 +104,11 @@ public class Constants {
     public static final String ATTR_CURRENT_USER = "current_user";
 
     /**
+     * Attribute for current user's login for this session.
+     */
+    public static final String ATTR_LOGIN = "login";
+
+    /**
      * Attribute for users list.
      */
     public static final String ATTR_USERS_LIST = "users";
