@@ -1,0 +1,21 @@
+# Language
+language: java
+# User-mode
+sudo: false
+
+# JaCoCo statistics
+# service: https://codecov.io/
+after_success:
+- bash <(curl -s https://codecov.io/bash)
+
+# Sends e-mail if assembly success or fail.
+notifications:
+  email:
+    recipients:
+      - artress@ngs.ru
+    on_success: always # default: change
+    on_failure: always # default: always
+
+env:
+  global:
+    CODECOV_TOKEN="020f2de3-6fe2-47f9-8801-6520503da5bb"
