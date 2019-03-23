@@ -27,6 +27,9 @@
                 </select>
             </td></tr>
         </c:if>
+        <c:if test="${current_user.role == 'user'}">
+            <input type="hidden" name="role" value="${user.role}">
+        </c:if>
         <tr><td><input type="submit" value="Edit"></td></tr>
     </table>
 </form>

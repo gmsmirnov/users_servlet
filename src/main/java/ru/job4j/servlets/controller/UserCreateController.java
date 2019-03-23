@@ -42,7 +42,6 @@ public class UserCreateController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         Dispatcher dispatcher = new Dispatcher(new User(
-                req.getParameter(User.PARAM_ID),
                 req.getParameter(User.PARAM_LOGIN),
                 req.getParameter(User.PARAM_EMAIL),
                 req.getParameter(User.PARAM_PASSWORD),

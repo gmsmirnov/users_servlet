@@ -80,4 +80,12 @@ public interface UserDao {
      * @return true if the id is used like a key.
      */
     boolean containsKey(int id) throws DaoSystemException;
+
+    /**
+     * Checks if the specified user's login is used in the container.
+     *
+     * @param user - the specified user, which login checks.
+     * @return true if the user's login is already used.
+     */
+    boolean containsLogin(User user) throws DaoSystemException;
 }

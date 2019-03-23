@@ -11,7 +11,7 @@ import java.util.function.Function;
  * Dispatcher picks up the right logic action depending of type of POST request action param.
  *
  * @author Gregory Smirnov (artress@ngs.ru)
- * @version 1.1
+ * @version 1.2
  * @since 14/02/2019
  */
 public class Dispatcher {
@@ -37,7 +37,7 @@ public class Dispatcher {
                 this.logic.add(user);
             } catch (DaoSystemException e) {
                 e.printStackTrace();
-            } catch (AlreadyExistsModelWithSuchIdException e) {
+            } catch (AlreadyExistsModelWithSuchLoginException e) {
                 e.printStackTrace();
             } catch (NullArgumentException e) {
                 e.printStackTrace();

@@ -13,7 +13,6 @@
 </head>
 <body>
 <form action="${pageContext.servletContext.contextPath}/create" method="post">
-    ID: <input type="text" name="id"/></br>
     Login: <input type="text" name="login"/></br>
     E-mail: <input type="text" name="email"/></br>
     Password: <input type="password" name="password"/></br>
