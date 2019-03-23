@@ -3,6 +3,7 @@ package ru.job4j.servlets.model;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
 
@@ -19,13 +20,8 @@ public class UserTest {
     @Before
     public void init() {
         this.user = new User(
-          "1", "login", "user@mail.net", "password", "Russia", "Moscow", "admin"
+                "login", "user@mail.net", "password", "Russia", "Moscow", "admin"
         );
-    }
-
-    @Test
-    public void whenGetIdThenTrue() {
-        assertThat(this.user.getId(), is(1));
     }
 
     @Test
@@ -103,7 +99,7 @@ public class UserTest {
     @Test
     public void whenUsersAreEqualsThenTrue1() {
         User sameUser = new User(
-                "2", "login", "user@mail.net", "password", "Russia", "Moscow", "admin"
+                "login", "user@mail.net", "password", "Russia", "Moscow", "admin"
         );
         assertThat(this.user.equals(sameUser), is(true));
     }
@@ -117,7 +113,7 @@ public class UserTest {
     @Test
     public void whenUsersAreNotEqualsThenFalse1() {
         User sameUser = new User(
-                "2", "Tom", "user@mail.net", "password", "Russia", "Moscow", "admin"
+                "Tom", "user@mail.net", "password", "Russia", "Moscow", "admin"
         );
         assertThat(this.user.equals(sameUser), is(false));
     }
@@ -125,7 +121,7 @@ public class UserTest {
     @Test
     public void whenUsersAreNotEqualsThenFalse2() {
         User sameUser = new User(
-                "2", "login", "root@mail.net", "password", "Russia", "Moscow", "admin"
+                "login", "root@mail.net", "password", "Russia", "Moscow", "admin"
         );
         assertThat(this.user.equals(sameUser), is(false));
     }
@@ -133,7 +129,7 @@ public class UserTest {
     @Test
     public void whenUsersAreNotEqualsThenFalse3() {
         User sameUser = new User(
-                "2", "login", "user@mail.net", "pass", "Russia", "Moscow", "admin"
+                "login", "user@mail.net", "pass", "Russia", "Moscow", "admin"
         );
         assertThat(this.user.equals(sameUser), is(false));
     }
@@ -141,7 +137,7 @@ public class UserTest {
     @Test
     public void whenUsersAreNotEqualsThenFalse4() {
         User sameUser = new User(
-                "2", "login", "user@mail.net", "password", "China", "Moscow", "admin"
+                "login", "user@mail.net", "password", "China", "Moscow", "admin"
         );
         assertThat(this.user.equals(sameUser), is(false));
     }
@@ -149,7 +145,7 @@ public class UserTest {
     @Test
     public void whenUsersAreNotEqualsThenFalse5() {
         User sameUser = new User(
-                "2", "login", "user@mail.net", "password", "Russia", "Pekin", "admin"
+                "login", "user@mail.net", "password", "Russia", "Pekin", "admin"
         );
         assertThat(this.user.equals(sameUser), is(false));
     }
@@ -157,7 +153,7 @@ public class UserTest {
     @Test
     public void whenUsersAreNotEqualsThenFalse6() {
         User sameUser = new User(
-                "2", "login", "user@mail.net", "password", "Russia", "Moscow", "user"
+                "login", "user@mail.net", "password", "Russia", "Moscow", "user"
         );
         assertThat(this.user.equals(sameUser), is(false));
     }
@@ -166,11 +162,5 @@ public class UserTest {
     public void whenAnotherUserIsNullThenFalse() {
         User another = null;
         assertThat(this.user.equals(another), is(false));
-    }
-
-    @Test
-    public void whenRightFormatToStringThenTrue() {
-        String expected = "User {id='1', login='login', email='user@mail.net', country='Russia', city='Moscow', role='admin'";
-        assertThat(this.user.toString(), is(expected));
     }
 }

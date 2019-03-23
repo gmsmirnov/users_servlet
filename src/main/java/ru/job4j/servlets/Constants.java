@@ -114,11 +114,6 @@ public class Constants {
     public static final String ATTR_USERS_LIST = "users";
 
     /**
-     * Session's attribute for user's login.
-     */
-    public static final String ATTR_LOGIN = "login";
-
-    /**
      * Attribute for users id.
      */
     public static final String ATTR_USER_ID = "id";
