@@ -14,7 +14,7 @@
 <form action="${pageContext.servletContext.contextPath}/edit" method="post">
     <table>
         <tr><td>ID:</td><td><input type="text" readonly name="id" value="${user.id}"/></td></tr>
-        <tr><td>Login:</td><td><input type="text" name="login" value="${user.login}"/></td></tr>
+        <tr><td>Login:</td><td><input type="text" readonly name="login" value="${user.login}"/></td></tr>
         <tr><td>E-mail:</td><td><input type="text" name="email" value="${user.email}"/></td></tr>
         <tr><td>Password:</td><td><input type="password" name="password" value="${user.password}"/></td></tr>
         <tr><td>Country:</td><td><input type="text" name="country" value="${user.country}"/></td></tr>

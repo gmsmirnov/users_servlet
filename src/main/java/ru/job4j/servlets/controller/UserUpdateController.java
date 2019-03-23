@@ -11,6 +11,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
 /**
@@ -57,7 +58,7 @@ public class UserUpdateController extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        Dispatcher dispatcher = new Dispatcher(new User(
+        User user = new User(
                 Integer.parseInt(req.getParameter(User.PARAM_ID)),
                 req.getParameter(User.PARAM_LOGIN),
                 req.getParameter(User.PARAM_EMAIL),
@@ -65,8 +66,13 @@ public class UserUpdateController extends HttpServlet {
                 req.getParameter(User.PARAM_COUNTRY),
                 req.getParameter(User.PARAM_CITY),
                 req.getParameter(User.PARAM_ROLE)
-        ));
+        );
+        Dispatcher dispatcher = new Dispatcher(user);
         dispatcher.sent(Constants.ACTION_UPDATE);
+        HttpSession session = req.getSession();
+        if (session.getAttribute(Constants.ATTR_LOGIN).equals(req.getParameter(User.PARAM_LOGIN))) {
+            session.setAttribute(Constants.ATTR_CURRENT_USER, user);
+        }
         this.doGet(req, resp);
     }
 }

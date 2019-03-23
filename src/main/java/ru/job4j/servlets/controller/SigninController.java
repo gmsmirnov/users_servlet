@@ -50,7 +50,7 @@ public class SigninController extends HttpServlet {
             if (ValidateService.getSingletonValidateServiceInstance().isCredential(login, password)) {
                 HttpSession session = req.getSession();
                 session.setAttribute(Constants.ATTR_CURRENT_USER, UserDaoDb.getDBStoreInstance().findByLogin(login));
-                session.setAttribute("login", login);
+                session.setAttribute(Constants.ATTR_LOGIN, login);
                 resp.sendRedirect(String.format("%s%s", req.getContextPath(), Constants.PAGE_LIST));
             } else {
                 req.setAttribute("error", "Credential invalid");
