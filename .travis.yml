@@ -3,6 +3,10 @@ language: java
 # User-mode
 sudo: false
 
+# JDK
+jdk:
+- openjdk11
+
 # JaCoCo statistics
 # service: https://codecov.io/
 after_success:
