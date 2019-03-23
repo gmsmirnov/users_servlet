@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/gmsmirnov/users_servlet.svg?branch=features)](https://travis-ci.org/gmsmirnov/users_servlet)
+[![codecov](https://codecov.io/gh/gmsmirnov/users_servlet/branch/features/graph/badge.svg)](https://codecov.io/gh/gmsmirnov/users_servlet)
 # users_servlet
 Простое приложение для управления пользователями.
 
