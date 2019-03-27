@@ -1,15 +1,11 @@
 package ru.job4j.servlets.dao.impl;
 
-import com.ibatis.common.jdbc.ScriptRunner;
 import org.apache.commons.dbcp2.BasicDataSource;
 import ru.job4j.servlets.dao.UserDao;
 import ru.job4j.servlets.dao.exception.DaoSystemException;
 import ru.job4j.servlets.dao.exception.NoSuchIdException;
 import ru.job4j.servlets.model.User;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.Reader;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -57,6 +53,11 @@ public class UserDaoDb implements UserDao {
         UserDaoDb.SOURCE.setMaxOpenPreparedStatements(100);
         if (!this.isStructure()) {
             this.createStructure();
+            try {
+                this.initDataBase();
+            } catch (DaoSystemException | NoSuchIdException e) {
+                /*NOP*/
+            }
         }
     }
 
@@ -99,14 +100,65 @@ public class UserDaoDb implements UserDao {
      * Creates tables structure if it not exists.
      */
     private void createStructure() {
-//        String aSQLScriptFilePath = ".\\src\\main\\resources\\createTables.sql";
-        String aSQLScriptFilePath = "createTables.sql";
-        try (Connection connection = UserDaoDb.SOURCE.getConnection()) {
-            ScriptRunner scriptRunner = new ScriptRunner(connection, false, false);
-            Reader reader = new BufferedReader(new FileReader(aSQLScriptFilePath));
-            scriptRunner.runScript(reader);
-        } catch (Exception e) {
-            e.printStackTrace();
+        try (Connection connection = UserDaoDb.SOURCE.getConnection();
+             PreparedStatement tableUsers = connection.prepareStatement(
+                     "create table if not exists users("
+                             + "id serial primary key,"
+                             + "login varchar(30),"
+                             + "email varchar(50),"
+                             + "password varchar(30),"
+                             + "country varchar(30),"
+                             + "city varchar(30)"
+                             + ");"
+             );
+                PreparedStatement tableRoles = connection.prepareStatement(
+                        "create table if not exists roles("
+                                + "id serial primary key,"
+                                + "role varchar(30)"
+                                + ");"
+                );
+             PreparedStatement helpTable = connection.prepareStatement(
+                     "create table if not exists users_roles("
+                             + "id serial primary key,"
+                             + "user_id int references users(id),"
+                             + "role_id int references roles(id)"
+                             + ");"
+             )) {
+            tableUsers.executeUpdate();
+            tableRoles.executeUpdate();
+            helpTable.executeUpdate();
+        } catch (SQLException e) {
+            /*NOP*/
+        }
+    }
+
+    /**
+     * Initiates empty database. Inserts roles 'admin', 'user'. Inserts 'root'-user with password 'root'.
+     *
+     * @throws DaoSystemException if SQLException occurs.
+     * @throws NoSuchIdException if there is no role with such id in database.
+     */
+    private void initDataBase() throws DaoSystemException, NoSuchIdException {
+        this.addRole("admin");
+        this.addRole("user");
+        this.add(new User("root", "root@root.net", "root", "RF", "Moscow", "admin"));
+    }
+
+    /**
+     * Adds a role into role's table of the database.
+     *
+     * @param role - the specified role's name.
+     * @throws DaoSystemException if SQLException occurs.
+     */
+    public void addRole(String role) throws DaoSystemException {
+        try (Connection connection = UserDaoDb.SOURCE.getConnection();
+             PreparedStatement statement = connection.prepareStatement(
+                     "insert into roles (role) values (?);"
+             )) {
+            statement.setString(1, role);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new DaoSystemException(e.getMessage(), e);
         }
     }
 
