@@ -1,6 +1,8 @@
 package ru.job4j.servlets.dao.impl;
 
 import org.apache.commons.dbcp2.BasicDataSource;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import ru.job4j.servlets.dao.UserDao;
 import ru.job4j.servlets.dao.exception.DaoSystemException;
 import ru.job4j.servlets.dao.exception.NoSuchIdException;
@@ -16,10 +18,15 @@ import java.util.List;
  * Implementation of a Postrgres database storage.
  *
  * @author Gregory Smirnov (artress@ngs.ru)
- * @version 1.3
+ * @version 1.4
  * @since 21/02/2019
  */
 public class UserDaoDb implements UserDao {
+    /**
+     * The logger.
+     */
+    private static final Logger LOG = LogManager.getLogger(UserDaoDb.class.getName());
+
     /**
      * The connections' pool.
      */
@@ -56,7 +63,7 @@ public class UserDaoDb implements UserDao {
             try {
                 this.initDataBase();
             } catch (DaoSystemException | NoSuchIdException e) {
-                /*NOP*/
+                UserDaoDb.LOG.error(e.getMessage(), e);
             }
         }
     }
@@ -91,7 +98,7 @@ public class UserDaoDb implements UserDao {
                 result = true;
             }
         } catch (SQLException e) {
-            /*NOP*/
+            UserDaoDb.LOG.error(e.getMessage(), e);
         }
         return result;
     }
@@ -128,7 +135,7 @@ public class UserDaoDb implements UserDao {
             tableRoles.executeUpdate();
             helpTable.executeUpdate();
         } catch (SQLException e) {
-            /*NOP*/
+            UserDaoDb.LOG.error(e.getMessage(), e);
         }
     }
 
