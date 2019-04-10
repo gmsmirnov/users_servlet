@@ -25,7 +25,7 @@ public class Dispatcher {
     /**
      * The logic singleton.
      */
-    private final ValidateService logic = ValidateService.getSingletonValidateServiceInstance();
+    private final Validate logic = ValidateService.getSingletonValidateServiceInstance();
 
     /**
      * The POST request action params are mapped here into the logic actions handles.

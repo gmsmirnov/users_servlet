@@ -41,6 +41,7 @@
     <servlet>
         <servlet-name>signinController</servlet-name>
         <servlet-class>ru.job4j.servlets.controller.SigninController</servlet-class>
+        <load-on-startup>1</load-on-startup>
     </servlet>
     <servlet-mapping>
         <servlet-name>signinController</servlet-name>

@@ -1,41 +1,32 @@
 package ru.job4j.servlets;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import ru.job4j.servlets.dao.UserDao;
 import ru.job4j.servlets.dao.exception.*;
-import ru.job4j.servlets.dao.impl.UserDaoDb;
+import ru.job4j.servlets.dao.impl.UserDaoMemory;
 import ru.job4j.servlets.model.User;
 
 import java.util.Collection;
 
-/**
- * Validate service for user servlet.
- *
- * @author Gregory Smirnov (artress@ngs.ru)
- * @version 1.3
- * @since 13/02/2019
- */
-public class ValidateService implements Validate {
-    /**
-     * The logger.
-     */
-    private final static Logger LOG = LogManager.getLogger(ValidateService.class.getName());
-
+public class ValidateServiceStub implements Validate {
     /**
      * The singleton instance of a validate service.
      */
-    private static ValidateService singletonValidateServiceInstance = new ValidateService();
+    private static Validate singletonValidateServiceStubInstance = new ValidateServiceStub();
 
     /**
      * The storage singleton instance.
      */
-    private final UserDao userDao = UserDaoDb.getDBStoreInstance();
+    private UserDao memory = UserDaoMemory.getSingletonMemoryInstance();
+
+    /**
+     * ID's counter.
+     */
+    private int ids = 1;
 
     /**
      * Default constructor.
      */
-    private ValidateService() {
+    public ValidateServiceStub() {
     }
 
     /**
@@ -43,8 +34,8 @@ public class ValidateService implements Validate {
      *
      * @return the singleton instance of a validate service.
      */
-    public static Validate getSingletonValidateServiceInstance() {
-        return ValidateService.singletonValidateServiceInstance;
+    public static Validate getSingletonValidateServiceStubInstance() {
+        return ValidateServiceStub.singletonValidateServiceStubInstance;
     }
 
     /**
@@ -56,10 +47,12 @@ public class ValidateService implements Validate {
      * @throws AlreadyExistsModelWithSuchLoginException if there already is another user with such login in database.
      * @throws NoSuchIdException if there is no role with such id in database.
      */
+    @Override
     public void add(User user) throws DaoSystemException, NullArgumentException, AlreadyExistsModelWithSuchLoginException, NoSuchIdException {
         this.checkUser(user);
-        if (!this.userDao.containsLogin(user)) {
-            this.userDao.add(user);
+        if (!this.memory.containsLogin(user)) {
+            user.setId(this.ids++);
+            this.memory.add(user);
         } else {
             throw new AlreadyExistsModelWithSuchLoginException(String.format("User with such login already exists in database: %s.", user.getLogin()));
         }
@@ -74,11 +67,12 @@ public class ValidateService implements Validate {
      * @throws NullArgumentException if the specified user is null.
      * @throws NoSuchIdException if there is no role with the specified id in the database.
      */
+    @Override
     public boolean update(User user) throws DaoSystemException, NullArgumentException, NoSuchIdException {
         this.checkUser(user);
         boolean result = false;
-        if (this.userDao.containsKey(user)) {
-            this.userDao.update(user);
+        if (this.memory.containsKey(user)) {
+            this.memory.update(user);
             result = true;
         }
         return result;
@@ -92,11 +86,13 @@ public class ValidateService implements Validate {
      * @throws DaoSystemException - generates from SQLException.
      * @throws NullArgumentException if the specified user is null.
      */
+    @Override
     public boolean delete(User user) throws DaoSystemException, NullArgumentException {
         this.checkUser(user);
         boolean result = false;
-        if (this.userDao.containsKey(user)) {
-            this.userDao.delete(user);
+        if (this.memory.containsKey(user)) {
+            this.memory.delete(user);
+            this.ids--;
             result = true;
         }
         return result;
@@ -108,8 +104,9 @@ public class ValidateService implements Validate {
      * @return a collection of all users.
      * @throws DaoSystemException - generates from SQLException.
      */
+    @Override
     public Collection<User> findAll() throws DaoSystemException {
-        return this.userDao.findAll();
+        return this.memory.findAll();
     }
 
     /**
@@ -120,13 +117,33 @@ public class ValidateService implements Validate {
      * @throws DaoSystemException - generates from SQLException.
      * @throws NoSuchModelException - generates if there is no user with such id.
      */
+    @Override
     public User findById(int id) throws DaoSystemException, NoSuchModelException {
         User result = null;
-        if (this.userDao.containsKey(id)) {
-            result = this.userDao.findById(id);
+        if (this.memory.containsKey(id)) {
+            result = this.memory.findById(id);
         }
         if (result == null) {
             throw new NoSuchModelException(String.format("No user with id: %d", id));
+        }
+        return result;
+    }
+
+    /**
+     * Checks if the user with specified login and password is in the storage.
+     *
+     * @param login - the specified user's login.
+     * @param password - the specified user's password.
+     * @return true if the user with specified login and password is in the storage.
+     */
+    @Override
+    public boolean isCredential(String login, String password) throws DaoSystemException {
+        boolean result = false;
+        for (User user : this.memory.findAll()) {
+            if (login.equals(user.getLogin()) && password.equals(user.getPassword())) {
+                result = true;
+                break;
+            }
         }
         return result;
     }
@@ -142,38 +159,4 @@ public class ValidateService implements Validate {
             throw new NullArgumentException("Null user argument.");
         }
     }
-
-    /**
-     * Checks if the user with specified login and password is in the storage.
-     *
-     * @param login - the specified user's login.
-     * @param password - the specified user's password.
-     * @return true if the user with specified login and password is in the storage.
-     */
-    public boolean isCredential(String login, String password) throws DaoSystemException {
-        boolean result = false;
-        for (User user : this.userDao.findAll()) {
-            if (login.equals(user.getLogin()) && password.equals(user.getPassword())) {
-                result = true;
-                ValidateService.LOG.info("User is valid.");
-                break;
-            }
-        }
-        return result;
-    }
-/*
-    public boolean haveRole(String login, String role) throws DaoSystemException {
-        boolean result = false;
-        for (User user : this.userDao.findAll()) {
-            if (login.equals(user.getLogin()) && role.equals(user.getRole())) {
-                result = true;
-                break;
-            }
-        }
-        return result;
-    }
-
-    public boolean isAdmin(String login) throws DaoSystemException {
-        return this.haveRole(login, Constants.ROLE_ADMIN);
-    }*/
 }

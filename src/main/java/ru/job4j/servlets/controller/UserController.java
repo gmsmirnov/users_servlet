@@ -3,6 +3,7 @@ package ru.job4j.servlets.controller;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import ru.job4j.servlets.Constants;
+import ru.job4j.servlets.Validate;
 import ru.job4j.servlets.ValidateService;
 import ru.job4j.servlets.dao.exception.DaoSystemException;
 import ru.job4j.servlets.dao.exception.NoSuchModelException;
@@ -30,7 +31,7 @@ public class UserController extends HttpServlet {
     /**
      * The logic singleton instance.
      */
-    private final ValidateService logic = ValidateService.getSingletonValidateServiceInstance();
+    private final Validate logic = ValidateService.getSingletonValidateServiceInstance();
 
     /**
      * Shows user's profile (forwards request to jsp view page).

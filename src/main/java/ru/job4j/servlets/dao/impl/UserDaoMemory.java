@@ -29,6 +29,7 @@ public class UserDaoMemory implements UserDao {
      * Default constructor.
      */
     private UserDaoMemory() {
+        this.storage.put(0, new User("root", "root@mail.net", "root", "Russia", "Moscow", "admin"));
     }
 
     /**
@@ -132,7 +133,14 @@ public class UserDaoMemory implements UserDao {
      */
     @Override
     public boolean containsLogin(User user) {
-        return false;
+        boolean result = false;
+        for (User value : this.storage.values()) {
+            if (value.getLogin().equals(user.getLogin())) {
+                result = true;
+                break;
+            }
+        }
+        return result;
     }
 
     /**
@@ -143,6 +151,13 @@ public class UserDaoMemory implements UserDao {
      */
     @Override
     public User findByLogin(String login) {
-        return null;
+        User result = null;
+        for (User value : this.storage.values()) {
+            if (login.equals(value.getLogin())) {
+                result = value;
+                break;
+            }
+        }
+        return result;
     }
 }

@@ -2,9 +2,7 @@ package ru.job4j.servlets.controller;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import ru.job4j.servlets.Constants;
-import ru.job4j.servlets.Dispatcher;
-import ru.job4j.servlets.ValidateService;
+import ru.job4j.servlets.*;
 import ru.job4j.servlets.dao.exception.DaoSystemException;
 import ru.job4j.servlets.dao.exception.NoSuchModelException;
 import ru.job4j.servlets.model.User;
@@ -31,7 +29,7 @@ public class UsersListController extends HttpServlet {
     /**
      * The logic singleton instance.
      */
-    private final ValidateService logic = ValidateService.getSingletonValidateServiceInstance();
+    private final Validate logic = ValidateService.getSingletonValidateServiceInstance();
 
     /**
      * Shows the table of all registered users. The GET request. Read method of CRUD service. The GET request.
