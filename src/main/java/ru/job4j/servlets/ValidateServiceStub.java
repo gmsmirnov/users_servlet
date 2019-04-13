@@ -50,12 +50,11 @@ public class ValidateServiceStub implements Validate {
     @Override
     public void add(User user) throws DaoSystemException, NullArgumentException, AlreadyExistsModelWithSuchLoginException, NoSuchIdException {
         this.checkUser(user);
-        if (!this.memory.containsLogin(user)) {
-            user.setId(this.ids++);
-            this.memory.add(user);
-        } else {
+        if (this.memory.containsLogin(user)) {
             throw new AlreadyExistsModelWithSuchLoginException(String.format("User with such login already exists in database: %s.", user.getLogin()));
         }
+        user.setId(this.ids++);
+        this.memory.add(user);
     }
 
     /**
