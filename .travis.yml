@@ -25,7 +25,8 @@ env:
     CODECOV_TOKEN="020f2de3-6fe2-47f9-8801-6520503da5bb"
 
 # Start PostgreSQL
-  services:
-  - postgresql
-  before_install:
+services:
+- postgresql
+before_install:
   - psql -c "CREATE DATABASE users;" -U postgres
+  - psql -c "CREATE DATABASE users_test;" -U postgres

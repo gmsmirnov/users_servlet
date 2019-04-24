@@ -18,7 +18,7 @@ import java.util.List;
  * Implementation of a Postrgres database storage.
  *
  * @author Gregory Smirnov (artress@ngs.ru)
- * @version 1.4
+ * @version 1.5
  * @since 21/02/2019
  */
 public class UserDaoDb implements UserDao {
@@ -51,21 +51,13 @@ public class UserDaoDb implements UserDao {
      * Default constructor.
      */
     public UserDaoDb() {
-        UserDaoDb.SOURCE.setUrl("jdbc:postgresql://127.0.0.1:5432/users");
+        UserDaoDb.SOURCE.setUrl("jdbc:postgresql://127.0.0.1:5432/users_test");
         UserDaoDb.SOURCE.setUsername("postgres");
         UserDaoDb.SOURCE.setPassword("postgres");
         UserDaoDb.SOURCE.setDriverClassName("org.postgresql.Driver");
         UserDaoDb.SOURCE.setMinIdle(5);
         UserDaoDb.SOURCE.setMaxIdle(10);
         UserDaoDb.SOURCE.setMaxOpenPreparedStatements(100);
-        if (!this.isStructure()) {
-            this.createStructure();
-            try {
-                this.initDataBase();
-            } catch (DaoSystemException | NoSuchIdException e) {
-                UserDaoDb.LOG.error(e.getMessage(), e);
-            }
-        }
     }
 
     /**
@@ -101,54 +93,6 @@ public class UserDaoDb implements UserDao {
             UserDaoDb.LOG.error(e.getMessage(), e);
         }
         return result;
-    }
-
-    /**
-     * Creates tables structure if it not exists.
-     */
-    private void createStructure() {
-        try (Connection connection = UserDaoDb.SOURCE.getConnection();
-             PreparedStatement tableUsers = connection.prepareStatement(
-                     "create table if not exists users("
-                             + "id serial primary key,"
-                             + "login varchar(30),"
-                             + "email varchar(50),"
-                             + "password varchar(30),"
-                             + "country varchar(30),"
-                             + "city varchar(30)"
-                             + ");"
-             );
-                PreparedStatement tableRoles = connection.prepareStatement(
-                        "create table if not exists roles("
-                                + "id serial primary key,"
-                                + "role varchar(30)"
-                                + ");"
-                );
-             PreparedStatement helpTable = connection.prepareStatement(
-                     "create table if not exists users_roles("
-                             + "id serial primary key,"
-                             + "user_id int references users(id),"
-                             + "role_id int references roles(id)"
-                             + ");"
-             )) {
-            tableUsers.executeUpdate();
-            tableRoles.executeUpdate();
-            helpTable.executeUpdate();
-        } catch (SQLException e) {
-            UserDaoDb.LOG.error(e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Initiates empty database. Inserts roles 'admin', 'user'. Inserts 'root'-user with password 'root'.
-     *
-     * @throws DaoSystemException if SQLException occurs.
-     * @throws NoSuchIdException if there is no role with such id in database.
-     */
-    private void initDataBase() throws DaoSystemException, NoSuchIdException {
-        this.addRole("admin");
-        this.addRole("user");
-        this.add(new User("root", "root@root.net", "root", "RF", "Moscow", "admin"));
     }
 
     /**
